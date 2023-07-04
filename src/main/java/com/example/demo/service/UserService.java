@@ -23,10 +23,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final JavaMailSender mailSender;
 
+    // 사용하지 않으므로 삭제
     // optional을 반환한다는 의미의 find로 변경
-    public Optional<UserEntity> findById(long id) {
-        return userRepository.findByIdAndStatus(id, UserStatus.ACTIVE);
-    }
+//    public Optional<UserEntity> findById(long id) {
+//        return userRepository.findByIdAndStatus(id, UserStatus.ACTIVE);
+//    }
 
     public UserEntity getByEmail(String email) {
         return userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
