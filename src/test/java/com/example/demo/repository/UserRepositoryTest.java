@@ -4,7 +4,6 @@ import com.example.demo.model.UserStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -12,7 +11,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@Sql("/sql/test-user-data.sql") // sql 테스트 데이터를 만들어 준다.
+@Sql("/sql/user-repository-test-data.sql") // sql 테스트 데이터를 만들어 준다.
 @DataJpaTest
 class UserRepositoryTest {
 
