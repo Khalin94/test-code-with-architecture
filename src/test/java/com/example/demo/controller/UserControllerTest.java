@@ -77,6 +77,13 @@ class UserControllerTest {
         assertThat(userEntity.get().getStatus()).isEqualTo(UserStatus.ACTIVE);
     }
 
+    @Test
+    void verifyEmailExceptionTest() throws Exception {
+        mockMvc.perform(get("/api/users/2/verify").queryParam("certificationCode", "bbbb-bbbbb-bbbg"))
+               .andExpect(status().isForbidden())
+                .andExpect(content().string("자격 증명에 실패하였습니다."));
+    }
+
     @DisplayName("email을 통해 사용자 정보를 조회한다.")
     @Test
     void meTest() throws Exception {
