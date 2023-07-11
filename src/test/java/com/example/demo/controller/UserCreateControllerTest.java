@@ -51,6 +51,7 @@ class UserCreateControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.email").value("test5@test.com"))
+                .andExpect(jsonPath("$.nickname").value("test5"))
 //                .andExpect(jsonPath("$.address").value("NewYork"))
                 .andExpect(jsonPath("$.status").value("PENDING")) // 처음 유저를 만들면 PENDING 상태
                ;
