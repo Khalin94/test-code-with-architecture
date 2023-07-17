@@ -2,6 +2,7 @@ package com.example.demo.user.service;
 
 import com.example.demo.common.exception.CertificationCodeNotMatchedException;
 import com.example.demo.common.exception.ResourceNotFoundException;
+import com.example.demo.user.domain.User;
 import com.example.demo.user.domain.UserStatus;
 import com.example.demo.user.domain.UserCreate;
 import com.example.demo.user.domain.UserUpdate;
@@ -47,10 +48,10 @@ class UserServiceTest {
         //given
         String email = "test@test.com";
         //when
-        UserEntity userEntity = userService.getByEmail(email);
+        User user = userService.getByEmail(email);
 
         //then
-        assertThat(userEntity.getAddress()).isEqualTo("seoul");
+        assertThat(user.getAddress()).isEqualTo("seoul");
     }
 
     @DisplayName("getByEmail에 데이터가 없으면 exception이 발생한다.")
@@ -79,11 +80,11 @@ class UserServiceTest {
     void getByIdBringDataOnlyActiveStatus(){
         //given
         //when
-        UserEntity userEntity = userService.getById(1L);
+        User user = userService.getById(1L);
 
         //then
-        assertThat(userEntity.getAddress()).isEqualTo("seoul");
-        assertThat(userEntity.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        assertThat(user.getAddress()).isEqualTo("seoul");
+        assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
     }
 
     @DisplayName("유저 상태가 Pending이면 exception이 발생한다.")
@@ -111,9 +112,9 @@ class UserServiceTest {
         BDDMockito.doNothing().when(mailSender).send(any(SimpleMailMessage.class)); // mail 발송 인증이 에러가 나지 않도록 mockito를 이용해 mock 생성
 
         //when
-        UserEntity userEntity = userService.create(userCreate);
+        User user = userService.create(userCreate);
         //then
-        assertThat(userEntity).isNotNull();
+        assertThat(user).isNotNull();
         //assertThat(userEntity.getCertificationCode()).isEqualTo(""); //certificationCode는 UUID로 생성하므로 테스트가 안된다... FIXME
     }
 
@@ -127,11 +128,11 @@ class UserServiceTest {
         //when
         userService.update(1L, userUpdate);
 
-        UserEntity userEntity = userService.getById(1L);
+        User user = userService.getById(1L);
 
-        assertThat(userEntity).isNotNull();
-        assertThat(userEntity.getNickname()).isEqualTo("test4");
-        assertThat(userEntity.getAddress()).isEqualTo("busan");
+        assertThat(user).isNotNull();
+        assertThat(user.getNickname()).isEqualTo("test4");
+        assertThat(user.getAddress()).isEqualTo("busan");
     }
 
     @Test
@@ -139,9 +140,9 @@ class UserServiceTest {
 
         userService.login(1L);
 
-        UserEntity userEntity = userService.getById(1L);
+        User user = userService.getById(1L);
 
-        assertThat(userEntity.getLastLoginAt()).isGreaterThan(0L); // 현재시간을 확인할 수 없어 0보다 클 때로 비고 FIXME
+        assertThat(user.getLastLoginAt()).isGreaterThan(0L); // 현재시간을 확인할 수 없어 0보다 클 때로 비고 FIXME
     }
 
     @DisplayName("id와 certificationCode를 받아서 이메일 인증이 완료되면 status가 Active로 변경된다.")
@@ -150,10 +151,10 @@ class UserServiceTest {
         //given
         //when
         userService.verifyEmail(2L, "bbbb-bbbbb-bbba");
-        UserEntity userEntity = userService.getById(2L);
+        User user = userService.getById(2L);
 
         //then
-        assertThat(userEntity.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
     }
 
     @DisplayName("이메일 인증이 실패되면 Exception이 발생한다.")

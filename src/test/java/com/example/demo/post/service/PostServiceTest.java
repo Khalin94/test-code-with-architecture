@@ -1,6 +1,7 @@
 package com.example.demo.post.service;
 
 import com.example.demo.common.exception.ResourceNotFoundException;
+import com.example.demo.post.domain.Post;
 import com.example.demo.post.domain.PostCreate;
 import com.example.demo.post.domain.PostUpdate;
 import com.example.demo.post.infrastructure.PostEntity;
@@ -31,10 +32,10 @@ class PostServiceTest {
     void getByIdTest() {
         //given
         //when
-        PostEntity postEntity = postService.getById(1L);
+        Post post = postService.getById(1L);
 
         //then
-        assertThat(postEntity.getContent()).isEqualTo("helloworld");
+        assertThat(post.getContent()).isEqualTo("helloworld");
     }
 
     @DisplayName("post에 해당 id가 없으면 exception이 발생한다.")
@@ -60,10 +61,10 @@ class PostServiceTest {
                                           .content("loren ipsum")
                                           .writerId(1L)
                                           .build();
-        PostEntity postEntity = postService.create(postCreate);
+        Post post = postService.create(postCreate);
 
-        assertThat(postEntity.getContent()).isEqualTo("loren ipsum");
-        assertThat(postEntity.getWriter().getId()).isEqualTo(1L);
+        assertThat(post.getContent()).isEqualTo("loren ipsum");
+        assertThat(post.getWriter().getId()).isEqualTo(1L);
     }
 
     @DisplayName("PostUpdateDto를 통해 Post를 수정할 수 있다.")
@@ -75,10 +76,10 @@ class PostServiceTest {
 
         postService.update(1L, postUpdate);
 
-        PostEntity postEntity = postService.getById(1L);
+        Post post = postService.getById(1L);
 
-        assertThat(postEntity.getContent()).isEqualTo("test lorem ipsum");
-        assertThat(postEntity.getCreatedAt()).isGreaterThan(0L);
+        assertThat(post.getContent()).isEqualTo("test lorem ipsum");
+        assertThat(post.getCreatedAt()).isGreaterThan(0L);
 
     }
 
