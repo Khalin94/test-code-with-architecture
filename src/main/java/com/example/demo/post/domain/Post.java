@@ -1,5 +1,6 @@
 package com.example.demo.post.domain;
 
+import com.example.demo.common.service.ClockHolder;
 import com.example.demo.user.domain.User;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,20 +25,20 @@ public class Post {
         this.writer = writer;
     }
 
-    public static Post from(PostCreate postCreate, User writer){
+    public static Post from(PostCreate postCreate, User writer, ClockHolder clockHolder){
         return Post.builder()
                 .content(postCreate.getContent())
                 .writer(writer)
-                .createdAt(Clock.systemUTC().millis())
+                .createdAt(clockHolder.mills())
                 .build();
     }
 
-    public Post update(PostUpdate postUpdate){
+    public Post update(PostUpdate postUpdate, ClockHolder clockHolder){
         return Post.builder()
                    .id(this.id)
                    .content(postUpdate.getContent())
                    .createdAt(this.createdAt)
-                   .modifiedAt(Clock.systemUTC().millis())
+                   .modifiedAt(clockHolder.mills())
                    .writer(this.writer)
                    .build();
     }
