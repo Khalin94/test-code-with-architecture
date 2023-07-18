@@ -26,4 +26,5 @@ public class PostTest {
         assertThat(post.getWriter().getNickname()).isEqualTo("test");
 
     }
+
 }

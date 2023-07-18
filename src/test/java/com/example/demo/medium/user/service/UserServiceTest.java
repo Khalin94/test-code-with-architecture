@@ -1,17 +1,13 @@
-package com.example.demo.user.service;
+package com.example.demo.medium.user.service;
 
 import com.example.demo.common.exception.CertificationCodeNotMatchedException;
 import com.example.demo.common.exception.ResourceNotFoundException;
-import com.example.demo.mock.FakeMailSender;
-import com.example.demo.mock.FakeUserRepository;
-import com.example.demo.mock.TestClockHolder;
-import com.example.demo.mock.TestUuidHolder;
 import com.example.demo.user.domain.User;
-import com.example.demo.user.domain.UserCreate;
 import com.example.demo.user.domain.UserStatus;
+import com.example.demo.user.domain.UserCreate;
 import com.example.demo.user.domain.UserUpdate;
-import com.example.demo.user.service.port.MailSender;
-import org.junit.jupiter.api.BeforeEach;
+import com.example.demo.user.infrastructure.UserEntity;
+import com.example.demo.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
@@ -26,44 +22,24 @@ import org.springframework.test.context.jdbc.SqlGroup;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
+//@Sql("/sql/user-service-test-data.sql") // sql 테스트 데이터를 만들어 준다.
+// 테스트가 여러 개 들어가면 데이터가 남아 있어 첫번째 테스트 외에 error가 발생한다.(각각의 테스트할 때 중복됨)
+// 그러므로 @SqlGroup을 사용한다.
+@SqlGroup({
+        @Sql(value = "/sql/user-service-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+        @Sql(value = "/sql/delete-all-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+})
+@TestPropertySource("classpath:test-application.properties")
+@SpringBootTest
 class UserServiceTest {
 
-    UserService userService;
-
-    @BeforeEach
-    public void init(){
-        MailSender mailSender = new FakeMailSender();
-        FakeUserRepository fakeUserRepository = new FakeUserRepository();
-        this.userService = UserService.builder()
-                                      .certificationService(new CertificationService(mailSender))
-                                      .clockHolder(new TestClockHolder(169830L))
-                                      .userRepository(fakeUserRepository)
-                                      .uuidHolder(new TestUuidHolder("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab"))
-                                      .build();
-
-        fakeUserRepository.save(User.builder()
-                                    .id(1L)
-                                    .email("test@test.com")
-                                    .address("seoul")
-                                    .nickname("test")
-                                    .status(UserStatus.ACTIVE)
-                                    .certificationCode("bbbb-bbbbb-bbbb")
-                                    .lastLoginAt(0L)
-                                    .build());
-
-        fakeUserRepository.save(User.builder()
-                                    .id(2L)
-                                    .email("test2@test.com")
-                                    .address("seoul")
-                                    .nickname("test")
-                                    .status(UserStatus.PENDING)
-                                    .certificationCode("bbbb-bbbbb-bbba")
-                                    .lastLoginAt(0L)
-                                    .build());
-    }
+    @Autowired
+    private UserService userService;
+    @MockBean
+    private JavaMailSender mailSender;
 
     @DisplayName("getByEmail은 Active 상태의 유저 데이터만 찾아올 수 있다.")
     @Test
@@ -133,13 +109,13 @@ class UserServiceTest {
                                           .nickname("test3")
                                           .address("youngdeungpo")
                                           .build();
+        BDDMockito.doNothing().when(mailSender).send(any(SimpleMailMessage.class)); // mail 발송 인증이 에러가 나지 않도록 mockito를 이용해 mock 생성
 
         //when
         User user = userService.create(userCreate);
-        System.out.println("user.getId() = " + user.getId());
         //then
         assertThat(user).isNotNull();
-        assertThat(user.getCertificationCode()).isEqualTo("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab");
+        //assertThat(userEntity.getCertificationCode()).isEqualTo(""); //certificationCode는 UUID로 생성하므로 테스트가 안된다... FIXME
     }
 
     @Test
@@ -166,7 +142,7 @@ class UserServiceTest {
 
         User user = userService.getById(1L);
 
-        assertThat(user.getLastLoginAt()).isEqualTo(169830L);
+        assertThat(user.getLastLoginAt()).isGreaterThan(0L); // 현재시간을 확인할 수 없어 0보다 클 때로 비고 FIXME
     }
 
     @DisplayName("id와 certificationCode를 받아서 이메일 인증이 완료되면 status가 Active로 변경된다.")

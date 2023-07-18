@@ -1,4 +1,4 @@
-package com.example.demo.common.controller;
+package com.example.demo.medium.common.contoller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
