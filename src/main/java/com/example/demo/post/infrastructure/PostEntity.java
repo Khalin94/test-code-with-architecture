@@ -1,7 +1,6 @@
 package com.example.demo.post.infrastructure;
 
 import com.example.demo.post.domain.Post;
-import com.example.demo.user.domain.User;
 import com.example.demo.user.infrastructure.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,7 +46,7 @@ public class PostEntity {
                    .build();
     }
 
-    public static PostEntity fromModel(Post post){
+    public static PostEntity from(Post post){
         PostEntity postEntity = new PostEntity();
         postEntity.id = post.getId();
         postEntity.content = post.getContent();
