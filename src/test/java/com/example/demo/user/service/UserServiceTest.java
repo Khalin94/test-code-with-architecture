@@ -14,15 +14,6 @@ import com.example.demo.user.service.port.MailSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlGroup;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -31,18 +22,18 @@ import static org.mockito.ArgumentMatchers.any;
 
 class UserServiceTest {
 
-    UserService userService;
+    UserServiceImpl userService;
 
     @BeforeEach
     public void init(){
         MailSender mailSender = new FakeMailSender();
         FakeUserRepository fakeUserRepository = new FakeUserRepository();
-        this.userService = UserService.builder()
-                                      .certificationService(new CertificationService(mailSender))
-                                      .clockHolder(new TestClockHolder(169830L))
-                                      .userRepository(fakeUserRepository)
-                                      .uuidHolder(new TestUuidHolder("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab"))
-                                      .build();
+        this.userService = UserServiceImpl.builder()
+                                          .certificationService(new CertificationServiceImpl(mailSender))
+                                          .clockHolder(new TestClockHolder(169830L))
+                                          .userRepository(fakeUserRepository)
+                                          .uuidHolder(new TestUuidHolder("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab"))
+                                          .build();
 
         fakeUserRepository.save(User.builder()
                                     .id(1L)

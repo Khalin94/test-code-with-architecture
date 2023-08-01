@@ -1,11 +1,9 @@
 package com.example.demo.user.service;
 
 import com.example.demo.mock.FakeMailSender;
-import com.example.demo.user.service.port.MailSender;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class CertificationServiceTest {
 
@@ -13,7 +11,7 @@ class CertificationServiceTest {
     void sendTest(){
 
         FakeMailSender mailSender = new FakeMailSender();
-        CertificationService certificationService = new CertificationService(mailSender);
+        CertificationServiceImpl certificationService = new CertificationServiceImpl(mailSender);
         certificationService.send("test@test.com", 1L, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
         assertThat(mailSender.email).isEqualTo("test@test.com");
