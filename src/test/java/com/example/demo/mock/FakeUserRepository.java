@@ -35,12 +35,12 @@ public class FakeUserRepository implements UserRepository {
         if(user.getId() == null || user.getId() == 0){
             User newUser = User.builder()
                                .id(autoIncreaseId++)
-                               .email("test@test.com")
-                               .nickname("test")
-                               .certificationCode("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab")
-                               .status(UserStatus.ACTIVE)
-                               .lastLoginAt(100L)
-                               .address("busan")
+                               .email(user.getEmail())
+                               .nickname(user.getNickname())
+                               .certificationCode(user.getCertificationCode())
+                               .status(user.getStatus())
+                               .lastLoginAt(user.getLastLoginAt())
+                               .address(user.getAddress())
                                .build();
             data.add(newUser);
             return newUser;

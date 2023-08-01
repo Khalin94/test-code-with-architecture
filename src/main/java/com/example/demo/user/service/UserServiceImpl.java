@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserCreateService, UserUpdateService, UserReadService, AuthenticationService {
 
     private final UserRepository userRepository;
-    private final CertificationServiceImpl certificationService;
+    private final CertificationService certificationService;
     private final UuidHolder uuidHolder;
     private final ClockHolder clockHolder;
 

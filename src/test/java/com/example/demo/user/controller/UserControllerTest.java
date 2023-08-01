@@ -1,149 +1,185 @@
 package com.example.demo.user.controller;
 
+import com.example.demo.common.exception.CertificationCodeNotMatchedException;
 import com.example.demo.common.exception.ResourceNotFoundException;
-import com.example.demo.user.controller.port.UserReadService;
-import com.example.demo.user.controller.port.UserService;
+import com.example.demo.mock.TestClockHolder;
+import com.example.demo.mock.TestContainer;
+import com.example.demo.mock.TestUuidHolder;
+import com.example.demo.user.controller.reponse.MyProfileResponse;
 import com.example.demo.user.controller.reponse.UserResponse;
 import com.example.demo.user.domain.User;
 import com.example.demo.user.domain.UserStatus;
 import com.example.demo.user.domain.UserUpdate;
-import com.example.demo.user.infrastructure.UserEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class UserControllerTest {
 
     @DisplayName("사용자 정보를 userId로 조회한다.")
     @Test
     void getUserByIdTest() {
-        // 자연스럽게 Stub하는 방법과 인터페이스 분리 하는 법
-        UserController userController = UserController.builder()
-                                                      .userReadService(new UserReadService() {
-                                                          @Override
-                                                          public User getByEmail(String email) {
-                                                              return null;
-                                                          }
+        TestContainer testContainer = TestContainer.builder()
+                                                   .clockHolder(new TestClockHolder(1678530673951L))
+                                                   .uuidHolder(new TestUuidHolder("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+                                                   .build();
+        testContainer.userRepository.save(User.builder()
+                                              .address("seoul")
+                                              .id(1L)
+                                              .lastLoginAt(100L)
+                                              .email("test@test.com")
+                                              .status(UserStatus.ACTIVE)
+                                              .nickname("test")
+                                              .build());
+        ResponseEntity<UserResponse> result = testContainer.userController.getUserById(1L);
 
-                                                          @Override
-                                                          public User getById(long id) {
-                                                              return User.builder()
-                                                                         .id(id)
-                                                                         .email("test@test.com")
-                                                                         .address("seoul")
-                                                                         .nickname("test")
-                                                                         .status(UserStatus.ACTIVE)
-                                                                         .certificationCode("aaaaa-bbbbbb-ccccc")
-                                                                         .build();
-                                                          }
-                                                      })
-                                                      .build();
-
-        ResponseEntity<UserResponse> result = userController.getUserById(1);
         assertThat(result.getStatusCode()).isEqualTo(HttpStatusCode.valueOf(200));
-        assertThat(result.getBody().getEmail()).isEqualTo("test@test.com");
-        assertThat(result.getBody().getNickname()).isEqualTo("test");
-        assertThat(result.getBody().getStatus()).isEqualTo(UserStatus.ACTIVE);
+        assertThat(result.getBody()
+                         .getNickname()).isEqualTo("test");
+        assertThat(result.getBody()
+                         .getEmail()).isEqualTo("test@test.com");
+        assertThat(result.getBody()
+                         .getId()).isEqualTo(1L);
+        assertThat(result.getBody()
+                         .getStatus()).isEqualTo(UserStatus.ACTIVE);
+
 
     }
 
     @DisplayName("사용자 정보가 없으면 Exception이 발생한다.")
     @Test
     void getUserByIdExceptionTest() {
-        // 자연스럽게 Stub하는 방법과 인터페이스 분리 하는 법
-        UserController userController = UserController.builder()
-                                                      .userReadService(new UserReadService() {
-                                                          @Override
-                                                          public User getByEmail(String email) {
-                                                              return null;
-                                                          }
-
-                                                          @Override
-                                                          public User getById(long id) {
-                                                              throw new ResourceNotFoundException("Users", id);
-                                                          }
-                                                      })
-                                                      .build();
+        TestContainer testContainer = TestContainer.builder()
+                                                   .clockHolder(new TestClockHolder(1678530673951L))
+                                                   .uuidHolder(new TestUuidHolder("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+                                                   .build();
+        UserController userController = testContainer.userController;
 
         assertThatThrownBy(() -> {
             userController.getUserById(1);
         }).isInstanceOf(ResourceNotFoundException.class);
 
     }
-//
-//    @DisplayName("인증코드로 계정을 활성화 시킬 수 있다.")
-//    @Test
-//    void verifyEmailTest() throws Exception {
-//        mockMvc.perform(get("/api/users/2/verify").queryParam("certificationCode", "bbbb-bbbbb-bbba"))
-//               .andExpect(status().isFound())
-//        ;
-//
-//        Optional<UserEntity> userEntity = userJpaRepository.findById(2L);
-//
-//        assertThat(userEntity.get().getStatus()).isEqualTo(UserStatus.ACTIVE);
-//    }
-//
-//    @Test
-//    void verifyEmailExceptionTest() throws Exception {
-//        mockMvc.perform(get("/api/users/2/verify").queryParam("certificationCode", "bbbb-bbbbb-bbbg"))
-//               .andExpect(status().isForbidden())
-//                .andExpect(content().string("자격 증명에 실패하였습니다."));
-//    }
-//
-//    @DisplayName("email을 통해 사용자 정보를 조회한다.")
-//    @Test
-//    void meTest() throws Exception {
-//        mockMvc.perform(get("/api/users/me").header("EMAIL", "test@test.com"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.id").value(1L))
-//                .andExpect(jsonPath("$.email").value("test@test.com"))
-//                .andExpect(jsonPath("$.nickname").value("test"))
-//                .andExpect(jsonPath("$.address").value("seoul"))
-//                .andExpect(jsonPath("$.status").value("ACTIVE"))
-//               ;
-//    }
-//
-//    @DisplayName("email을 통해 내정보를 찾지 못하면 Exception이 발생한다.")
-//    @Test
-//    void meExceptionTest() throws Exception {
-////        mockMvc.perform(get("/api/users/me").header("EMAIL", "wrong@test.com"))
-////                .andExpect(status().isNotFound())
-////               ;
-//        mockMvc.perform(get("/api/users/me").header("EMAIL", "wrong@test.com"))
-//                .andExpect(status().isNotFound())
-//                .andExpect(content().string("Users에서 ID wrong@test.com를 찾을 수 없습니다."))
-//        ;
-//    }
-//
-//    @DisplayName("사용자 정보를 수정한다.")
-//    @Test
-//    void updateUserTest() throws Exception {
-//        //given
-//        UserUpdate userUpdate = UserUpdate.builder()
-//                                          .address("kimpo")
-//                                          .nickname("hello")
-//                                          .build();
-//
-//        //when
-//        //then
-//        mockMvc.perform(put("/api/users/me").header("EMAIL", "test@test.com")
-//                                            .contentType(MediaType.APPLICATION_JSON)
-//                                            .content(objectMapper.writeValueAsString(userUpdate)))
-//                .andExpect(jsonPath("$.nickname").value("hello"))
-//                .andExpect(jsonPath("$.address").value("kimpo"))
-//               ;
-//
-//    }
+
+    @DisplayName("인증코드로 계정을 활성화 시킬 수 있다.")
+    @Test
+    void verifyEmailTest() {
+        TestContainer testContainer = TestContainer.builder()
+                                                   .clockHolder(new TestClockHolder(1678530673951L))
+                                                   .uuidHolder(new TestUuidHolder("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+                                                   .build();
+        testContainer.userRepository.save(User.builder()
+                                              .email("test@test.com")
+                                              .nickname("test")
+                                              .status(UserStatus.PENDING)
+                                              .id(1L)
+                                              .address("seoul")
+                                              .certificationCode("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                                              .build());
+        UserController userController = testContainer.userController;
+
+        userController.verifyEmail(1, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+
+        ResponseEntity<UserResponse> result = userController.getUserById(1L);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatusCode.valueOf(200));
+        assertThat(result.getBody()
+                         .getStatus()).isEqualTo(UserStatus.ACTIVE);
+
+    }
+
+    @Test
+    void verifyEmailExceptionTest() {
+        TestContainer testContainer = TestContainer.builder()
+                                                   .build();
+
+        testContainer.userRepository.save(User.builder()
+                                              .email("test@test.com")
+                                              .nickname("test")
+                                              .status(UserStatus.PENDING)
+                                              .id(1L)
+                                              .address("seoul")
+                                              .certificationCode("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                                              .build());
+        assertThatThrownBy(() -> {
+            testContainer.userController.verifyEmail(1L, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab");
+        }).isInstanceOf(CertificationCodeNotMatchedException.class);
+
+
+    }
+
+    @DisplayName("email을 통해 사용자 정보를 조회한다.")
+    @Test
+    void meTest() {
+        TestContainer testContainer = TestContainer.builder()
+                                                   .clockHolder(new TestClockHolder(1678530673951L))
+                                                   .build();
+        testContainer.userRepository.save(User.builder()
+                                              .email("test@test.com")
+                                              .nickname("test")
+                                              .status(UserStatus.ACTIVE)
+                                              .id(1L)
+                                              .address("seoul")
+                                              .certificationCode("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                                              .lastLoginAt(100L)
+                                              .build());
+        ResponseEntity<MyProfileResponse> result = testContainer.userController.getMyInfo("test@test.com");
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatusCode.valueOf(200));
+        assertThat(result.getBody()
+                         .getAddress()).isEqualTo("seoul");
+        assertThat(result.getBody()
+                         .getLastLoginAt()).isEqualTo(1678530673951L);
+        assertThat(result.getBody()
+                         .getEmail()).isEqualTo("test@test.com");
+        assertThat(result.getBody()
+                         .getId()).isEqualTo(1);
+        assertThat(result.getBody()
+                         .getNickname()).isEqualTo("test");
+        assertThat(result.getBody()
+                         .getStatus()).isEqualTo(UserStatus.ACTIVE);
+
+    }
+
+    @DisplayName("email을 통해 내정보를 찾지 못하면 Exception이 발생한다.")
+    @Test
+    void meExceptionTest() {
+        TestContainer testContainer = TestContainer.builder()
+                                                   .clockHolder(new TestClockHolder(1678530673951L))
+                                                   .build();
+        assertThatThrownBy(() -> {
+            testContainer.userController.getMyInfo("test@test.com");
+        }).isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @DisplayName("사용자 정보를 수정한다.")
+    @Test
+    void updateUserTest() {
+        TestContainer testContainer = TestContainer.builder()
+                                                   .uuidHolder(new TestUuidHolder("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+                                                   .clockHolder(new TestClockHolder(1678530673951L))
+                                                   .build();
+        testContainer.userRepository.save(User.builder()
+                                              .id(1L)
+                                              .email("test@test.com")
+                                              .nickname("test")
+                                              .status(UserStatus.ACTIVE)
+                                              .address("seoul")
+                                              .build());
+        testContainer.userController.updateMyInfo("test@test.com", UserUpdate.builder()
+                                                                             .address("busan")
+                                                                             .nickname("test1234")
+                                                                             .build());
+
+        ResponseEntity<MyProfileResponse> result = testContainer.userController.getMyInfo("test@test.com");
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatusCode.valueOf(200));
+        assertThat(result.getBody().getNickname()).isEqualTo("test1234");
+        assertThat(result.getBody().getAddress()).isEqualTo("busan");
+    }
 
 }
